@@ -1,0 +1,12 @@
+{
+  "index_patterns": ["gh*"],
+  "template": {
+    "mappings": {
+      "properties": {
+        "created_at": {
+          "type": "date"
+        }
+      }
+    }
+  }
+}

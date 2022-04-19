@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+
+  elasticsearch01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.2
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx2048m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
+  kibana01:
+    image: docker.elastic.co/kibana/kibana:7.17.2
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch01:9200
+    ports:
+      - "5601:5601"
+
+  indexer01:
+    build:
+      dockerfile: .
+      context: ./
+    environment:
+      - ES_HOST=elasticsearch01
+      - ES_PORT=9200
+      - ES_SCHEME=http
+      - ES_INDEX=ghauditlogs
+    volumes:
+      - /tmp/audit_log.json:/tmp/audit_log.json
+    command: ["/app/wait-for-it.sh", "elasticsearch01:9200", "-t", "0", "--", "java", "-jar", "/usr/local/app.jar"]
+    depends_on:
+      - elasticsearch01
